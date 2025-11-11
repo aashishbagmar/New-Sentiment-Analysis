@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector Analysis - {{ company }} | StockSense AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='stock_domain.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                <span>StockSense AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('index') }}" class="nav-link">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                {% if user_name %}
+                <li class="nav-item">
+                    <a href="{{ url_for('watchlist') }}" class="nav-link">
+                        <i class="fas fa-star"></i> Watchlist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('profile') }}" class="nav-link">
+                        <i class="fas fa-user"></i> {{ user_name }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for('login') }}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('register') }}" class="nav-link register-btn">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                        {{ message }}
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <!-- Analysis Navigation -->
+        <div class="analysis-nav">
+            <div class="analysis-header">
+                <h1><i class="fas fa-building"></i> {{ company }}</h1>
+                <p class="analysis-subtitle">Sector & Industry Classification Analysis</p>
+            </div>
+            
+            <div class="tab-navigation">
+                <a href="{{ url_for('latest_news') }}" class="tab-link">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Latest News</span>
+                </a>
+                <a href="{{ url_for('stock_correlations') }}" class="tab-link">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Stock Correlations</span>
+                </a>
+                <a href="{{ url_for('stock_domain') }}" class="tab-link active">
+                    <i class="fas fa-industry"></i>
+                    <span>Domain & Sector</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stock Domain Analysis -->
+        {% if stock_info and stock_info.ticker %}
+        <div class="domain-analysis-section">
+            <!-- Company Overview -->
+            <div class="company-overview">
+                <div class="company-header">
+                    <div class="company-identity">
+                        <h2>{{ company }}</h2>
+                        <div class="company-ticker">
+                            <i class="fas fa-chart-line"></i>
+                            <span>{{ stock_info.ticker }}</span>
+                        </div>
+                    </div>
+                    {% if stock_info.website %}
+                    <a href="{{ stock_info.website }}" target="_blank" class="company-website">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>Visit Website</span>
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if stock_info.business_summary %}
+                <div class="business-summary">
+                    <h3><i class="fas fa-info-circle"></i> Business Overview</h3>
+                    <p>{{ stock_info.business_summary }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sector and Industry Classification -->
+            <div class="classification-section">
+                <h2><i class="fas fa-layer-group"></i> Classification Breakdown</h2>
+                
+                <div class="classification-cards">
+                    <div class="classification-card sector-card">
+                        <div class="classification-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="classification-content">
+                            <h3>Sector</h3>
+                            <p class="classification-value">{{ stock_info.sector }}</p>
+                            <small>Primary business sector classification</small>
+                        </div>
+                    </div>
+                    
+                    <div class="classification-card industry-card">
+                        <div class="classification-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="classification-content">
+                            <h3>Industry</h3>
+                            <p class="classification-value">{{ stock_info.industry }}</p>
+                            <small>Specific industry classification</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Metrics -->
+            <div class="company-metrics">
+                <h2><i class="fas fa-chart-bar"></i> Company Metrics</h2>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card market-cap-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Market Capitalization</h3>
+                            <p class="metric-value">
+                                {% if stock_info.market_cap >= 1000000000000 %}
+                                    ${{ "%.2f"|format(stock_info.market_cap / 1000000000000) }}T
+                                    <small class="metric-label">Trillion</small>
+                                {% elif stock_info.market_cap >= 1000000000 %}
+                                    ${{ "%.2f"|format(stock_info.market_cap / 1000000000) }}B
+                                    <small class="metric-label">Billion</small>
+                                {% elif stock_info.market_cap >= 1000000 %}
+                                    ${{ "%.2f"|format(stock_info.market_cap / 1000000) }}M
+                                    <small class="metric-label">Million</small>
+                                {% elif stock_info.market_cap > 0 %}
+                                    ${{ "{:,}".format(stock_info.market_cap) }}
+                                    <small class="metric-label">USD</small>
+                                {% else %}
+                                    N/A
+                                    <small class="metric-label">Not Available</small>
+                                {% endif %}
+                            </p>
+                            <div class="market-cap-category">
+                                {% if stock_info.market_cap >= 200000000000 %}
+                                    <span class="cap-badge mega-cap">Mega Cap</span>
+                                {% elif stock_info.market_cap >= 10000000000 %}
+                                    <span class="cap-badge large-cap">Large Cap</span>
+                                {% elif stock_info.market_cap >= 2000000000 %}
+                                    <span class="cap-badge mid-cap">Mid Cap</span>
+                                {% elif stock_info.market_cap >= 300000000 %}
+                                    <span class="cap-badge small-cap">Small Cap</span>
+                                {% elif stock_info.market_cap > 0 %}
+                                    <span class="cap-badge micro-cap">Micro Cap</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card location-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Headquarters</h3>
+                            <p class="metric-value">{{ stock_info.country }}</p>
+                            <small class="metric-description">Primary country of operation</small>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card employees-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Workforce</h3>
+                            <p class="metric-value">
+                                {% if stock_info.employee_count >= 1000000 %}
+                                    {{ "%.1f"|format(stock_info.employee_count / 1000000) }}M
+                                    <small class="metric-label">Million Employees</small>
+                                {% elif stock_info.employee_count >= 1000 %}
+                                    {{ "{:,}".format(stock_info.employee_count) }}
+                                    <small class="metric-label">Employees</small>
+                                {% elif stock_info.employee_count > 0 %}
+                                    {{ stock_info.employee_count }}
+                                    <small class="metric-label">Employees</small>
+                                {% else %}
+                                    N/A
+                                    <small class="metric-label">Not Available</small>
+                                {% endif %}
+                            </p>
+                            <div class="company-size-category">
+                                {% if stock_info.employee_count >= 10000 %}
+                                    <span class="size-badge large-enterprise">Large Enterprise</span>
+                                {% elif stock_info.employee_count >= 1000 %}
+                                    <span class="size-badge enterprise">Enterprise</span>
+                                {% elif stock_info.employee_count >= 250 %}
+                                    <span class="size-badge medium-business">Medium Business</span>
+                                {% elif stock_info.employee_count > 0 %}
+                                    <span class="size-badge small-business">Small Business</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sector Analysis -->
+            <div class="sector-analysis">
+                <h2><i class="fas fa-chart-pie"></i> Sector Intelligence</h2>
+                
+                <div class="sector-info-grid">
+                    <div class="sector-description">
+                        <h3>About {{ stock_info.sector }} Sector</h3>
+                        <div class="sector-details">
+                            {% if stock_info.sector == 'Technology' %}
+                                <p>The Technology sector encompasses companies involved in the research, development, and distribution of technologically based goods and services. This includes software, hardware, semiconductors, and internet-related services.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>High growth potential and innovation</li>
+                                        <li>Significant R&D investments</li>
+                                        <li>Rapid product lifecycle changes</li>
+                                        <li>Strong intellectual property portfolios</li>
+                                        <li>High volatility and market sensitivity</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Financial Services' %}
+                                <p>The Financial Services sector includes banks, investment companies, insurance companies, and real estate firms. These companies manage money, facilitate transactions, and provide various financial products and services.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Heavily regulated industry</li>
+                                        <li>Sensitive to interest rate changes</li>
+                                        <li>Capital intensive operations</li>
+                                        <li>Cyclical business patterns</li>
+                                        <li>Credit risk exposure</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Healthcare' %}
+                                <p>The Healthcare sector includes pharmaceutical companies, biotechnology firms, medical device manufacturers, and healthcare service providers. This sector focuses on improving human health and treating diseases.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Long development cycles for products</li>
+                                        <li>Extensive regulatory requirements</li>
+                                        <li>High R&D investment requirements</li>
+                                        <li>Patent-dependent revenue streams</li>
+                                        <li>Defensive characteristics during downturns</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Energy' %}
+                                <p>The Energy sector encompasses companies involved in the exploration, production, and distribution of oil, gas, and renewable energy sources. This includes upstream, midstream, and downstream operations.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Highly cyclical and commodity-driven</li>
+                                        <li>Capital intensive operations</li>
+                                        <li>Geopolitical sensitivity</li>
+                                        <li>Environmental and regulatory pressures</li>
+                                        <li>Transition to renewable energy</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Consumer Cyclical' %}
+                                <p>Consumer Cyclical companies provide goods and services that are sensitive to economic cycles. This includes retail, automotive, leisure, and luxury goods companies.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Economic cycle sensitivity</li>
+                                        <li>Discretionary spending dependence</li>
+                                        <li>Seasonal business patterns</li>
+                                        <li>Brand and marketing importance</li>
+                                        <li>Consumer trend sensitivity</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Consumer Defensive' %}
+                                <p>Consumer Defensive companies provide essential goods and services that remain in demand regardless of economic conditions. This includes food, beverages, household products, and utilities.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Stable demand patterns</li>
+                                        <li>Lower volatility during downturns</li>
+                                        <li>Essential product categories</li>
+                                        <li>Consistent cash flows</li>
+                                        <li>Dividend-paying potential</li>
+                                    </ul>
+                                </div>
+                            {% elif stock_info.sector == 'Industrials' %}
+                                <p>The Industrials sector includes companies involved in manufacturing, construction, aerospace, defense, and transportation. These companies provide goods and services to other businesses.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Key Characteristics:</h4>
+                                    <ul>
+                                        <li>Economic cycle sensitivity</li>
+                                        <li>Capital goods focus</li>
+                                        <li>Long-term project cycles</li>
+                                        <li>Global supply chain exposure</li>
+                                        <li>Infrastructure dependence</li>
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <p>{{ stock_info.sector }} sector companies operate in specialized markets with unique characteristics and investment considerations.</p>
+                                <div class="sector-characteristics">
+                                    <h4>Investment Considerations:</h4>
+                                    <ul>
+                                        <li>Sector-specific risk factors</li>
+                                        <li>Regulatory environment</li>
+                                        <li>Market dynamics and competition</li>
+                                        <li>Economic sensitivity</li>
+                                        <li>Growth prospects and trends</li>
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="industry-focus">
+                        <h3>Industry Focus: {{ stock_info.industry }}</h3>
+                        <div class="industry-specifics">
+                            <p>{{ company }} operates specifically within the {{ stock_info.industry }} industry, a subset of the broader {{ stock_info.sector }} sector.</p>
+                            
+                            <div class="competitive-landscape">
+                                <h4><i class="fas fa-users"></i> Competitive Landscape</h4>
+                                <p>Companies in this industry typically compete on factors such as:</p>
+                                <ul>
+                                    <li>Product innovation and quality</li>
+                                    <li>Market share and brand recognition</li>
+                                    <li>Cost efficiency and pricing power</li>
+                                    <li>Distribution channels and reach</li>
+                                    <li>Customer service and relationships</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investment Profile -->
+            <div class="investment-profile">
+                <h2><i class="fas fa-bullseye"></i> Investment Profile</h2>
+                
+                <div class="profile-cards">
+                    <div class="profile-card risk-profile">
+                        <h3><i class="fas fa-shield-alt"></i> Risk Assessment</h3>
+                        <div class="risk-factors">
+                            {% if stock_info.sector in ['Technology', 'Energy', 'Consumer Cyclical'] %}
+                                <div class="risk-level high-risk">
+                                    <span class="risk-indicator"></span>
+                                    <span>Higher Risk Profile</span>
+                                </div>
+                                <p>{{ stock_info.sector }} stocks typically exhibit higher volatility and greater sensitivity to market conditions and economic cycles.</p>
+                            {% elif stock_info.sector in ['Healthcare', 'Consumer Defensive', 'Utilities'] %}
+                                <div class="risk-level moderate-risk">
+                                    <span class="risk-indicator"></span>
+                                    <span>Moderate Risk Profile</span>
+                                </div>
+                                <p>{{ stock_info.sector }} stocks generally provide more stable returns with defensive characteristics during market downturns.</p>
+                            {% else %}
+                                <div class="risk-level moderate-risk">
+                                    <span class="risk-indicator"></span>
+                                    <span>Moderate Risk Profile</span>
+                                </div>
+                                <p>{{ stock_info.sector }} stocks exhibit moderate risk characteristics with sector-specific considerations.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-card growth-profile">
+                        <h3><i class="fas fa-chart-line"></i> Growth Characteristics</h3>
+                        <div class="growth-factors">
+                            {% if stock_info.sector in ['Technology', 'Healthcare'] %}
+                                <div class="growth-potential high-growth">
+                                    <span class="growth-indicator"></span>
+                                    <span>High Growth Potential</span>
+                                </div>
+                                <p>{{ stock_info.sector }} companies often demonstrate strong growth potential through innovation and market expansion.</p>
+                            {% elif stock_info.sector in ['Financial Services', 'Industrials'] %}
+                                <div class="growth-potential moderate-growth">
+                                    <span class="growth-indicator"></span>
+                                    <span>Cyclical Growth Pattern</span>
+                                </div>
+                                <p>{{ stock_info.sector }} growth typically correlates with economic cycles and market conditions.</p>
+                            {% else %}
+                                <div class="growth-potential stable-growth">
+                                    <span class="growth-indicator"></span>
+                                    <span>Steady Growth Profile</span>
+                                </div>
+                                <p>{{ stock_info.sector }} companies generally provide consistent, steady growth over time.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-card dividend-profile">
+                        <h3><i class="fas fa-coins"></i> Income Potential</h3>
+                        <div class="dividend-characteristics">
+                            {% if stock_info.sector in ['Utilities', 'Consumer Defensive', 'Financial Services'] %}
+                                <div class="dividend-yield high-dividend">
+                                    <span class="dividend-indicator"></span>
+                                    <span>Income Focused</span>
+                                </div>
+                                <p>{{ stock_info.sector }} companies often provide attractive dividend yields and consistent income streams.</p>
+                            {% elif stock_info.sector in ['Technology', 'Healthcare'] %}
+                                <div class="dividend-yield growth-focused">
+                                    <span class="dividend-indicator"></span>
+                                    <span>Growth Focused</span>
+                                </div>
+                                <p>{{ stock_info.sector }} companies typically reinvest earnings for growth rather than paying high dividends.</p>
+                            {% else %}
+                                <div class="dividend-yield balanced">
+                                    <span class="dividend-indicator"></span>
+                                    <span>Balanced Approach</span>
+                                </div>
+                                <p>{{ stock_info.sector }} companies may offer a balance of growth and income depending on individual strategies.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        {% else %}
+        <!-- No Stock Data Available -->
+        <div class="no-stock-data">
+            <div class="no-data-icon">
+                <i class="fas fa-industry"></i>
+            </div>
+            <h3>Stock Information Unavailable</h3>
+            <p>We couldn't retrieve detailed information for {{ company }}. This might be because:</p>
+            <ul>
+                <li>The company name could not be matched to a stock ticker</li>
+                <li>The stock is not publicly traded</li>
+                <li>Data is temporarily unavailable</li>
+            </ul>
+            <div class="no-data-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Try Another Company
+                </a>
+                <a href="{{ url_for('latest_news') }}" class="btn btn-outline">
+                    <i class="fas fa-newspaper"></i> View News Analysis
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Analysis Complete -->
+        <div class="analysis-complete">
+            <div class="complete-card">
+                <div class="complete-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Analysis Complete</h3>
+                <p>You've completed the comprehensive analysis for {{ company }}. Review all sections or start a new analysis.</p>
+                <div class="complete-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Analyze Another Stock
+                    </a>
+                    <a href="{{ url_for('latest_news') }}" class="btn btn-review">
+                        <i class="fas fa-arrow-left"></i> Review News Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-chart-line"></i> StockSense AI</h3>
+                <p>Comprehensive sector and industry analysis for informed investment decisions.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Domain Analysis</h4>
+                <ul>
+                    <li>Sector classification</li>
+                    <li>Industry analysis</li>
+                    <li>Company metrics</li>
+                    <li>Investment profiles</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 StockSense AI. Sector intelligence powered by comprehensive financial data analysis.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+
+        // Add interactive elements
+        document.querySelectorAll('.metric-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

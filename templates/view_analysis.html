@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Details - {{ analysis.company_name }} | StockSense AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='view_analysis.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                <span>StockSense AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('index') }}" class="nav-link">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('analysis_history') }}" class="nav-link">
+                        <i class="fas fa-history"></i> Analysis History
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('watchlist') }}" class="nav-link">
+                        <i class="fas fa-star"></i> Watchlist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('profile') }}" class="nav-link">
+                        <i class="fas fa-user"></i> {{ user_name }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                        {{ message }}
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <!-- Analysis Header -->
+        <div class="analysis-detail-header card" style="padding: var(--space-lg); margin-bottom: var(--space-lg); background-color: #3D74B6; color: #FBF5DE;">
+            <div class="header-content" style="display:flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                <div class="company-info" style="flex: 1; min-width: 250px;">
+                    <h1 style="display:flex; align-items:center; gap: 0.5rem;">
+                        <i class="fas fa-building"></i> {{ analysis.company_name }}
+                    </h1>
+                    {% if analysis.ticker_symbol %}
+                    <div class="ticker-symbol" style="font-weight: 600; color: #FBF5DE; font-size: 1.1rem;">
+                        {{ analysis.ticker_symbol }}
+                    </div>
+                    {% endif %}
+                    <div class="analysis-date" style="margin-top: 0.25rem;">
+                        <i class="fas fa-calendar"></i> Analysis Date: {{ analysis.analysis_date }}
+                    </div>
+                </div>
+                
+                <div class="back-button" style="margin-top: 1rem;">
+                    <a href="{{ url_for('analysis_history') }}" class="btn btn-outline btn-small" style="color: #FBF5DE;">
+                        <i class="fas fa-arrow-left"></i> Back to History
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Overview -->
+        <section class="analysis-overview-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg); background-color: #3D74B6; color: #FBF5DE;">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-chart-bar"></i> Analysis Overview
+            </h2>
+            <div class="overview-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                <div class="overview-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="overview-icon sentiment-{{ analysis.overall_sentiment.lower() if analysis.overall_sentiment else 'neutral' }}" style="font-size: 2rem;">
+                        <i class="fas {% if analysis.overall_sentiment == 'Positive' %}fa-smile{% elif analysis.overall_sentiment == 'Negative' %}fa-frown{% else %}fa-meh{% endif %}"></i>
+                    </div>
+                    <div class="overview-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #FBF5DE;">Overall Sentiment</h3>
+                        <p class="overview-value sentiment-{{ analysis.overall_sentiment.lower() if analysis.overall_sentiment else 'neutral' }}" style="font-weight: 600; font-size: 1.1rem;">
+                            {{ analysis.overall_sentiment or 'Unknown' }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="overview-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="overview-icon" style="font-size: 2rem;">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="overview-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #FBF5DE;">Articles Analyzed</h3>
+                        <p class="overview-value" style="font-weight: 600; font-size: 1.1rem;">{{ analysis.total_articles or 0 }}</p>
+                    </div>
+                </div>
+                
+                <div class="overview-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="overview-icon" style="font-size: 2rem;">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                    <div class="overview-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #FBF5DE;">Sector</h3>
+                        <p class="overview-value" style="font-weight: 600; font-size: 1.1rem;">{{ analysis.sector or 'Unknown' }}</p>
+                    </div>
+                </div>
+                
+                <div class="overview-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="overview-icon" style="font-size: 2rem;">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="overview-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #FBF5DE;">Industry</h3>
+                        <p class="overview-value" style="font-weight: 600; font-size: 1.1rem;">{{ analysis.industry or 'Unknown' }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sentiment Breakdown -->
+        {% if analysis.positive_count or analysis.negative_count or analysis.neutral_count %}
+        <section class="sentiment-breakdown-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem; color: #3D74B6;">
+                <i class="fas fa-chart-pie"></i> Sentiment Distribution
+            </h2>
+            <div class="sentiment-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                <div class="sentiment-stat positive card" style="display:flex; align-items:center; gap: 1rem; background: #D1FAE5; color: #065F46;">
+                    <div class="stat-icon" style="font-size: 2rem;">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #DC3C22;">{{ analysis.positive_count or 0 }}</h3>
+                        <p style="color: #FBF5DE;">Positive Articles</p>
+                        <div class="stat-percentage" style="font-weight: 600; color: #FBF5DE;">
+                            {% set total = (analysis.positive_count or 0) + (analysis.negative_count or 0) + (analysis.neutral_count or 0) %}
+                            {% if total > 0 %}
+                                {{ ((analysis.positive_count or 0) / total * 100)|round(1) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sentiment-stat negative card" style="display:flex; align-items:center; gap: 1rem; background: #FEE2E2; color: #991B1B;">
+                    <div class="stat-icon" style="font-size: 2rem;">
+                        <i class="fas fa-frown"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #DC3C22;">{{ analysis.negative_count or 0 }}</h3>
+                        <p style="color: #FBF5DE;">Negative Articles</p>
+                        <div class="stat-percentage" style="font-weight: 600; color: #FBF5DE;">
+                            {% if total > 0 %}
+                                {{ ((analysis.negative_count or 0) / total * 100)|round(1) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sentiment-stat neutral card" style="display:flex; align-items:center; gap: 1rem; background: #FEF3C7; color: #92400E;">
+                    <div class="stat-icon" style="font-size: 2rem;">
+                        <i class="fas fa-meh"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 style="margin-bottom: 0.25rem; color: #DC3C22;">{{ analysis.neutral_count or 0 }}</h3>
+                        <p style="color: #FBF5DE;">Neutral Articles</p>
+                        <div class="stat-percentage" style="font-weight: 600; color: #FBF5DE;">
+                            {% if total > 0 %}
+                                {{ ((analysis.neutral_count or 0) / total * 100)|round(1) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Text-based Sentiment Visualization -->
+        <section class="sentiment-text-container card" style="margin-top: 1.5rem; padding: var(--space-lg);">
+            <h3 style="margin-bottom: 1rem; color: #3D74B6;">Sentiment Distribution</h3>
+            {% set total_articles = (analysis.positive_count or 0) + (analysis.negative_count or 0) + (analysis.neutral_count or 0) %}
+            {% set pos_pct = ( (analysis.positive_count or 0) / total_articles * 100 )|round(1) if total_articles > 0 else 0 %}
+            {% set neg_pct = ( (analysis.negative_count or 0) / total_articles * 100 )|round(1) if total_articles > 0 else 0 %}
+            {% set neu_pct = ( (analysis.neutral_count or 0) / total_articles * 100 )|round(1) if total_articles > 0 else 0 %}
+            <div class="sentiment-stats" style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <div class="stat-item positive" style="flex: 1; min-width: 180px; background: #D1FAE5; color: #065F46; padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-thumbs-up"></i>
+                    <span style="color: #FBF5DE;">Positive: {{ analysis.positive_count or 0 }} articles ({{ pos_pct }}%)</span>
+                </div>
+                <div class="stat-item negative" style="flex: 1; min-width: 180px; background: #FEE2E2; color: #991B1B; padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-thumbs-down"></i>
+                    <span style="color: #FBF5DE;">Negative: {{ analysis.negative_count or 0 }} articles ({{ neg_pct }}%)</span>
+                </div>
+                <div class="stat-item neutral" style="flex: 1; min-width: 180px; background: #FEF3C7; color: #92400E; padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-minus"></i>
+                    <span style="color: #FBF5DE;">Neutral: {{ analysis.neutral_count or 0 }} articles ({{ neu_pct }}%)</span>
+                </div>
+                <div class="stat-total" style="flex-basis: 100%; margin-top: 1rem; font-weight: 600; color: #FBF5DE;">
+                    Total Articles Analyzed: {{ total_articles }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Stock Information -->
+        {% if analysis.stock_info %}
+        <section class="stock-info-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-info-circle"></i> Company Information
+            </h2>
+            <div class="stock-info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                {% if analysis.market_cap and analysis.market_cap > 0 %}
+                <div class="info-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="info-icon" style="font-size: 2rem; color: var(--primary-color);">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3 style="margin-bottom: 0.25rem;">Market Cap</h3>
+                        <p style="font-weight: 600; font-size: 1.1rem;">
+                            {% if analysis.market_cap >= 1000000000000 %}
+                                ${{ "%.2f"|format(analysis.market_cap / 1000000000000) }}T
+                            {% elif analysis.market_cap >= 1000000000 %}
+                                ${{ "%.2f"|format(analysis.market_cap / 1000000000) }}B
+                            {% elif analysis.market_cap >= 1000000 %}
+                                ${{ "%.2f"|format(analysis.market_cap / 1000000) }}M
+                            {% else %}
+                                ${{ "{:,}".format(analysis.market_cap) }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if analysis.country %}
+                <div class="info-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="info-icon" style="font-size: 2rem; color: var(--primary-color);">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3 style="margin-bottom: 0.25rem;">Country</h3>
+                        <p style="font-weight: 600; font-size: 1.1rem;">{{ analysis.country }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if analysis.sector %}
+                <div class="info-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="info-icon" style="font-size: 2rem; color: var(--primary-color);">
+                        <i class="fas fa-industry"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3 style="margin-bottom: 0.25rem;">Sector</h3>
+                        <p style="font-weight: 600; font-size: 1.1rem;">{{ analysis.sector }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if analysis.industry %}
+                <div class="info-card card" style="display:flex; align-items:center; gap: 1rem;">
+                    <div class="info-icon" style="font-size: 2rem; color: var(--primary-color);">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3 style="margin-bottom: 0.25rem;">Industry</h3>
+                        <p style="font-weight: 600; font-size: 1.1rem;">{{ analysis.industry }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Correlation Summary -->
+        {% if analysis.correlation_summary and analysis.correlation_summary.total_analyzed %}
+        <section class="correlation-summary-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-project-diagram"></i> Correlation Analysis Summary
+            </h2>
+            <div class="correlation-overview" style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center;">
+                <div class="correlation-metric card" style="flex: 1; min-width: 180px; text-align: center;">
+                    <div class="metric-icon" style="font-size: 2rem;">
+                        <i class="fas fa-chart-network"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3>{{ analysis.correlation_summary.total_analyzed }}</h3>
+                        <p>Stocks Analyzed</p>
+                    </div>
+                </div>
+
+                <div class="correlation-metric card" style="flex: 1; min-width: 180px; text-align: center;">
+                    <div class="metric-icon" style="font-size: 2rem;">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3>{{ (analysis.correlation_summary.average_correlation * 100)|round(1) }}%</h3>
+                        <p>Average Correlation</p>
+                    </div>
+                </div>
+
+                <div class="correlation-metric card" style="flex: 1; min-width: 180px; text-align: center;">
+                    <div class="metric-icon" style="font-size: 2rem;">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3>{{ analysis.correlation_summary.market_influence }}</h3>
+                        <p>Market Influence</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- News Articles -->
+        {% if analysis.news_data %}
+        <section class="news-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-newspaper"></i> News Articles ({{ analysis.news_data|length }})
+            </h2>
+            <div class="news-articles-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                {% for article in analysis.news_data[:10] %}
+                <article class="news-article-card card" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem;">
+                    <header class="article-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <div class="article-sentiment sentiment-{{ article.sentiment.lower() if article.sentiment else 'neutral' }}" style="display: flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+                            <i class="fas {% if article.sentiment == 'Positive' %}fa-smile{% elif article.sentiment == 'Negative' %}fa-frown{% else %}fa-meh{% endif %}"></i>
+                            <span>{{ article.sentiment or 'Neutral' }}</span>
+                        </div>
+                        
+                        {% if article.date %}
+                        <div class="article-date" style="color: var(--text-secondary); font-size: 0.9rem;">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ article.date }}</span>
+                        </div>
+                        {% endif %}
+                    </header>
+                    <h3 class="article-title" style="font-weight: 700; color: var(--primary-color); margin-bottom: 0.25rem;">{{ article.title }}</h3>
+                    {% if article.description %}
+                    <p class="article-description" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">{{ article.description }}</p>
+                    {% endif %}
+                    <div class="article-meta" style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-secondary);">
+                        {% if article.reference %}
+                        <div class="article-source" style="display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-newspaper"></i>
+                            <span>{{ article.reference }}</span>
+                        </div>
+                        {% endif %}
+                        {% if article.author and article.author != 'Unknown' %}
+                        <div class="article-author" style="display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-user-edit"></i>
+                            <span>{{ article.author }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if article.url %}
+                    <div class="article-actions" style="margin-top: auto;">
+                        <a href="{{ article.url }}" target="_blank" class="btn btn-outline btn-small" style="width: 100%; text-align: center;">
+                            <i class="fas fa-external-link-alt"></i> Read Full Article
+                        </a>
+                    </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+                {% if analysis.news_data|length > 10 %}
+                <div class="more-articles-notice" style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
+                    <p><i class="fas fa-info-circle"></i> Showing first 10 articles out of {{ analysis.news_data|length }} total articles analyzed.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Analysis Actions -->
+        <section class="analysis-actions-section card" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+            <h2 style="display:flex; align-items:center; gap: 0.5rem; margin-bottom: 1rem;">
+                <i class="fas fa-tools"></i> Actions
+            </h2>
+            <div class="actions-grid" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+                <button onclick="downloadFullReport()" class="action-btn btn btn-primary" style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem;">
+                    <div class="action-icon" style="font-size: 2rem;">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3 style="margin: 0;">Download Report</h3>
+                    <p style="font-size: 0.9rem; text-align: center;">Export complete analysis as text file</p>
+                </button>
+                <a href="{{ url_for('index') }}" class="action-btn btn btn-secondary" style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; text-align: center;">
+                    <div class="action-icon" style="font-size: 2rem;">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <h3 style="margin: 0;">New Analysis</h3>
+                    <p style="font-size: 0.9rem;">Start analyzing another stock</p>
+                </a>
+                <button onclick="addToWatchlist('{{ analysis.company_name }}')" class="action-btn btn btn-primary" style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem;">
+                    <div class="action-icon" style="font-size: 2rem;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 style="margin: 0;">Add to Watchlist</h3>
+                    <p style="font-size: 0.9rem; text-align: center;">Track this stock for updates</p>
+                </button>
+                <a href="{{ url_for('analysis_history') }}" class="action-btn btn btn-secondary" style="flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; text-align: center;">
+                    <div class="action-icon" style="font-size: 2rem;">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 style="margin: 0;">View History</h3>
+                    <p style="font-size: 0.9rem;">Browse all your analyses</p>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-chart-line"></i> StockSense AI</h3>
+                <p>Detailed analysis results for informed investment decisions.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Analysis Details</h4>
+                <ul>
+                    <li>Comprehensive sentiment analysis</li>
+                    <li>Stock correlation insights</li>
+                    <li>Sector classification</li>
+                    <li>Historical data tracking</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 StockSense AI. Detailed stock analysis powered by AI.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+
+
+
+        // Download full report function
+        function downloadFullReport() {
+            const analysisData = {
+                company: {{ analysis.company_name | tojson }},
+                ticker: {{ (analysis.ticker_symbol or 'N/A') | tojson }},
+                analysisDate: {{ analysis.analysis_date | tojson }},
+                sentiment: {{ (analysis.overall_sentiment or 'Unknown') | tojson }},
+                totalArticles: {{ analysis.total_articles or 0 }},
+                positiveCount: {{ analysis.positive_count or 0 }},
+                negativeCount: {{ analysis.negative_count or 0 }},
+                neutralCount: {{ analysis.neutral_count or 0 }},
+                sector: {{ (analysis.sector or 'Unknown') | tojson }},
+                industry: {{ (analysis.industry or 'Unknown') | tojson }},
+                country: {{ (analysis.country or 'Unknown') | tojson }},
+                marketCap: {{ analysis.market_cap or 0 }}
+            };
+            
+            let reportContent = `STOCKSENSE AI - COMPREHENSIVE ANALYSIS REPORT\n`;
+            reportContent += `${'='.repeat(50)}\n\n`;
+            reportContent += `Company: ${analysisData.company}\n`;
+            reportContent += `Ticker Symbol: ${analysisData.ticker}\n`;
+            reportContent += `Analysis Date: ${analysisData.analysisDate}\n`;
+            reportContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+            
+            reportContent += `SENTIMENT ANALYSIS SUMMARY\n`;
+            reportContent += `${'-'.repeat(30)}\n`;
+            reportContent += `Overall Sentiment: ${analysisData.sentiment}\n`;
+            reportContent += `Total Articles Analyzed: ${analysisData.totalArticles}\n`;
+            reportContent += `Positive Articles: ${analysisData.positiveCount} (${analysisData.totalArticles > 0 ? (analysisData.positiveCount / analysisData.totalArticles * 100).toFixed(1) : '0'}%)\n`;
+            reportContent += `Negative Articles: ${analysisData.negativeCount} (${analysisData.totalArticles > 0 ? (analysisData.negativeCount / analysisData.totalArticles * 100).toFixed(1) : '0'}%)\n`;
+            reportContent += `Neutral Articles: ${analysisData.neutralCount} (${analysisData.totalArticles > 0 ? (analysisData.neutralCount / analysisData.totalArticles * 100).toFixed(1) : '0'}%)\n\n`;
+            
+            reportContent += `COMPANY INFORMATION\n`;
+            reportContent += `${'-'.repeat(30)}\n`;
+            reportContent += `Sector: ${analysisData.sector}\n`;
+            reportContent += `Industry: ${analysisData.industry}\n`;
+            reportContent += `Country: ${analysisData.country}\n`;
+            
+            if (analysisData.marketCap > 0) {
+                let marketCapFormatted = '';
+                if (analysisData.marketCap >= 1000000000000) {
+                    marketCapFormatted = `$${(analysisData.marketCap / 1000000000000).toFixed(2)}T`;
+                } else if (analysisData.marketCap >= 1000000000) {
+                    marketCapFormatted = `$${(analysisData.marketCap / 1000000000).toFixed(2)}B`;
+                } else if (analysisData.marketCap >= 1000000) {
+                    marketCapFormatted = `$${(analysisData.marketCap / 1000000).toFixed(2)}M`;
+                } else {
+                    marketCapFormatted = `$${analysisData.marketCap.toLocaleString()}`;
+                }
+                reportContent += `Market Capitalization: ${marketCapFormatted}\n`;
+            }
+            
+            reportContent += `\n${'='.repeat(50)}\n`;
+            reportContent += `Report generated by StockSense AI\n`;
+            reportContent += `Advanced AI-powered stock sentiment analysis\n`;
+            reportContent += `Visit the web application for full interactive analysis\n`;
+            
+            // Create and download the file
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${analysisData.company.replace(/\s+/g, '_')}_Analysis_Report_${analysisData.analysisDate}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message
+            showNotification('Complete analysis report downloaded successfully!', 'success');
+        }
+
+        // Add to watchlist function
+        // Add to watchlist function - FIXED VERSION
+        function addToWatchlist(companyName) {
+            const formData = new FormData();
+            formData.append('company', companyName);
+            
+            fetch('/add-to-watchlist', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message, 'info');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error adding to watchlist. Please try again.', 'error');
+            });
+        }
+
+
+        // Show notification function
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                ${message}
+                <span class="closebtn" onclick="this.parentElement.remove();">&times;</span>
+            `;
+            
+            const container = document.querySelector('.flash-container') || document.createElement('div');
+            if (!document.querySelector('.flash-container')) {
+                container.className = 'flash-container';
+                document.body.appendChild(container);
+            }
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

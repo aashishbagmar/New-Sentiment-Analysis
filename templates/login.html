@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to AI Predictor</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A; /* Slate 900 - Body Background */
+            color: #E2E8F0; /* Slate 200 */
+        }
+        .text-primary-emerald {
+            color: #10B981; /* Emerald 500 */
+        }
+        .bg-primary-emerald {
+            background-color: #10B981;
+        }
+        .bg-card-dark {
+            background-color: #1E293B; /* Slate 800 - Card Background */
+        }
+        .border-card-dark {
+            border-color: #334155; /* Slate 700 - Border */
+        }
+        .ring-emerald-focus:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #10B981; /* Emerald focus ring */
+            border-color: #10B981;
+        }
+        .input-dark {
+            background-color: #0F172A; /* Slate 900 */
+            border-color: #334155; /* Slate 700 */
+        }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-10">
+            <a href="index.html" class="text-4xl font-bold tracking-tight text-white flex items-center justify-center">
+                <svg class="w-8 h-8 mr-2 text-primary-emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                AI Predictor
+            </a>
+            <h2 class="mt-6 text-3xl font-extrabold text-white">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-sm text-slate-400">
+                Or <a href="#" class="font-medium text-primary-emerald hover:text-emerald-500 transition">start your free trial</a>
+            </p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-card-dark p-8 sm:p-10 rounded-xl border border-card-dark">
+            
+            <form class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Email address</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required
+                        class="w-full px-4 py-2 input-dark rounded-lg text-white ring-emerald-focus" 
+                        placeholder="you@example.com">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required
+                        class="w-full px-4 py-2 input-dark rounded-lg text-white ring-emerald-focus" 
+                        placeholder="••••••••">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox"
+                            class="h-4 w-4 text-primary-emerald focus:ring-primary-emerald border-card-dark rounded bg-slate-900">
+                        <label for="remember-me" class="ml-2 block text-sm text-slate-400">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-primary-emerald hover:text-emerald-500 transition">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button typeM="submit" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-primary-emerald hover:bg-emerald-600 transition duration-150">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+
+            <!-- Contextual Note for Canvas Environment -->
+            <div class="mt-8 text-center text-xs text-slate-500 p-4 bg-slate-900 rounded-lg border border-card-dark">
+                <p>Note: In this live environment, the user session is automatically provisioned for immediate access to the AI tool via Firebase Auth.</p>
+                <p class="mt-2">This form is a mock interface.</p>
+                <p class="mt-4"><a href="index.html" class="font-bold text-primary-emerald hover:text-emerald-500 transition">Return to Home</a></p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Matching the 'AI Predictor' Landing Page Theme
+                        'dark-bg-main': '#17212B', // Deep Slate/Teal Background
+                        'dark-bg-card': '#1F2937', // Card/Element Background
+                        'accent-emerald': {
+                            400: '#34D399', // Bright Emerald for text/icons
+                            500: '#10B981', // Primary Accent (Matching Sign In button)
+                            600: '#059669', // Darker Emerald for buttons/hover
+                        },
+                        'light-text': '#F8FAFC', // Near white for main text
+                        'muted-text': '#94A3B8', // Slate-400 for helper text
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'xl': '0.75rem', 
+                        '2xl': '1rem',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* General Body and Container Styles */
+        body {
+            background-color: #17212B; /* dark-bg-main */
+            color: #F8FAFC; /* light-text */
+            min-height: 100vh;
+        }
+        
+        /* Input, Select, and Form Styling for Professional Look */
+        .input-style {
+            border: 1px solid #334155; /* Slate-700 for contrast */
+            background-color: #1F2937; /* dark-bg-card */
+            color: #F8FAFC; 
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        .input-style:focus {
+            border-color: #10B981; /* accent-emerald-500 */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+            background-color: #17212B; /* dark-bg-main to push contrast */
+        }
+        .select-style {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            /* Custom dropdown arrow in accent color */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334D399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem; 
+        }
+
+        /* Card Styling */
+        .professional-card {
+            border: 1px solid #334155;
+            background-color: #1F2937; /* dark-bg-card */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="font-sans">
+    
+    <!-- 1. TOP HEADER -->
+    <header class="bg-dark-bg-card p-4 shadow-xl sticky top-0 z-30 border-b border-slate-700">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Logo/Title -->
+            <h1 class="text-3xl font-extrabold text-accent-emerald-500 flex items-center shrink-0">
+                <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L19.5 7.25M19.5 7.25H14.25M19.5 7.25V12.5M9.75 17L7 19.75L4.25 17L7 14.25L9.75 17Z"></path></svg>
+                DataStream AI Analysis Dashboard
+            </h1>
+
+            <!-- Navigation Links -->
+            <nav class="flex space-x-4">
+                <a href="#" class="flex items-center p-2 rounded-lg text-light-text bg-accent-emerald-600 font-semibold transition duration-150 ease-in-out text-sm shadow-md hover:bg-accent-emerald-500">
+                    <svg class="w-5 h-5 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Analysis Tools
+                </a>
+                <!-- Reports button remains removed -->
+            </nav>
+        </div>
+    </header>
+
+    <!-- 2. MAIN CONTENT AREA -->
+    <main class="p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Analysis Controls Section -->
+            <section id="analysis-controls" class="w-full">
+                <div class="professional-card p-6 rounded-2xl mb-8">
+                    <h2 class="text-2xl font-bold text-light-text mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-accent-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Define Analysis Parameters
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <!-- Item Identifier (Full Width) -->
+                        <div class="md:col-span-2">
+                            <label for="item-identifier" class="block text-sm font-medium text-muted-text mb-1">
+                                <div class="flex items-center text-accent-emerald-400">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zm0 14h.01"></path></svg>
+                                    Item Identifier / Company Name
+                                </div>
+                            </label>
+                            <input type="text" id="item-identifier" 
+                                class="input-style w-full rounded-lg p-3" 
+                                placeholder="e.g., Apple, Tesla, Product ID 42, Segment X">
+                            <p class="text-xs text-muted-text mt-1">Specify the asset, stock, or product you wish to analyze.</p>
+                        </div>
+
+                        <!-- Analysis Date Dropdown -->
+                        <div>
+                            <label for="analysis-date" class="block text-sm font-medium text-muted-text mb-1">
+                                <div class="flex items-center text-accent-emerald-400">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Analysis Date
+                                </div>
+                            </label>
+                            <div class="relative">
+                                <select id="analysis-date" 
+                                    class="input-style select-style w-full rounded-lg p-3">
+                                    <option value="today" selected>Today</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="last-week">Last Week</option>
+                                    <option value="last-month">Last Month</option>
+                                </select>
+                            </div>
+                            <p class="text-xs text-muted-text mt-1">Select the timeframe for the data analysis.</p>
+                        </div>
+                    </div>
+
+                    <!-- Custom Query Input -->
+                    <div class="mt-6">
+                        <label for="custom-query" class="block text-sm font-medium text-muted-text mb-1">
+                            <div class="flex items-center text-accent-emerald-400">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Custom Analysis Prompt (Optional)
+                            </div>
+                        </label>
+                        <textarea id="custom-query" 
+                            rows="4"
+                            class="input-style w-full rounded-lg p-3 resize-none" 
+                            placeholder="e.g., Summarize the top 3 risk factors and their impact on future valuation."></textarea>
+                        <p class="text-xs text-muted-text mt-1">Refine the AI's output with specific instructions for the analysis.</p>
+                    </div>
+
+                    <!-- Execute Button and Messaging -->
+                    <div class="mt-8">
+                        <button id="run-analysis-button" class="w-full py-3 px-6 bg-accent-emerald-600 text-white font-bold rounded-lg hover:bg-accent-emerald-500 transition duration-150 ease-in-out shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Get AI Analysis
+                        </button>
+                        
+                        <p id="system-message" class="text-sm text-muted-text text-center mt-4">
+                            Ready to generate analysis.
+                        </p>
+                        
+                        <!-- Hidden Loading Indicator for UX -->
+                        <div id="loading-message" class="hidden text-center p-4">
+                            <div class="animate-spin inline-block w-6 h-6 border-4 border-t-4 border-accent-emerald-500 border-opacity-25 rounded-full mb-1"></div>
+                            <p class="text-muted-text text-sm">Executing analysis...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // --- API & Utility Functions ---
+
+        const API_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${apiKey}`;
+
+        // Utility to handle API call with exponential backoff
+        async function exponentialBackoffFetch(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    } else if (response.status === 429 && i < maxRetries - 1) {
+                        // Retry on rate limit (429)
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    } else {
+                        // Throw error for other HTTP status codes (e.g., 400, 500)
+                        const errorBody = await response.json();
+                        const errorMessage = errorBody.error?.message || response.statusText;
+                        throw new Error(`API Error: ${response.status} - ${errorMessage}`);
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    // Wait before retry
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            throw new Error("API request failed after multiple retries.");
+        }
+
+        // Function to perform the general AI analysis 
+        async function performQuery() {
+            
+            const itemIdentifier = document.getElementById('item-identifier').value.trim();
+            const analysisDate = document.getElementById('analysis-date').value;
+            const customQuery = document.getElementById('custom-query').value.trim();
+            
+            const loadingMessage = document.getElementById('loading-message');
+            const runButton = document.getElementById('run-analysis-button');
+            const systemMessage = document.getElementById('system-message');
+
+
+            if (!itemIdentifier) {
+                systemMessage.innerHTML = '<span class="text-red-400">Please enter an Item Identifier to run the analysis.</span>';
+                return;
+            }
+
+            // 1. Show Loading State
+            loadingMessage.classList.remove('hidden');
+            runButton.disabled = true;
+            systemMessage.innerHTML = 'Analysis started... Please wait for the response to update in the editor.';
+
+
+            try {
+                // Construct the full prompt for the AI
+                const fullPrompt = `Analyze the item: "${itemIdentifier}" based on the timeframe: "${analysisDate}".
+                The user has provided the following specific instruction: "${customQuery || 'Provide a comprehensive overview of the current sentiment and key risks.'}"
+                As a Professional Business Analyst, provide a detailed, well-structured report using professional markdown headings and formatting.`;
+
+                // System Prompt guides the AI's persona and tone
+                const systemPrompt = `You are a world-class financial and business analyst. Provide a professional, comprehensive, and well-structured report based on the user's input. Always use clear markdown formatting (headings, lists, bold text). Use Google Search grounding for real-time data analysis.`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: fullPrompt }] }],
+                    tools: [{ "google_search": {} }], // Use Google Search for grounding
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+                // 2. API Call 
+                const response = await exponentialBackoffFetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                let sources = [];
+
+                if (!text) {
+                    throw new Error("Received an empty response from the AI model.");
+                }
+
+                const groundingMetadata = result.candidates?.[0]?.groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({
+                            uri: attribution.web?.uri,
+                            title: attribution.web?.title,
+                        }))
+                        .filter(source => source.uri && source.title); 
+                }
+                
+                // Format the output including sources
+                const formattedOutput = formatReport(text, sources);
+
+                systemMessage.innerHTML = '<span class="text-accent-emerald-400 font-bold">Analysis Complete!</span> The full report has been generated in the editor.';
+                
+                // After successful API call, generate the file in markdown format.
+                generateAnalysisArtifact(formattedOutput, itemIdentifier, analysisDate);
+
+            } catch (error) {
+                console.error("AI Analysis failed:", error);
+                systemMessage.innerHTML = `<span class="text-red-400">Error: ${error.message}. Please try again.</span>`;
+            } finally {
+                // 4. Hide Loading State
+                loadingMessage.classList.add('hidden');
+                runButton.disabled = false;
+            }
+        }
+        
+        function formatReport(text, sources) {
+            let report = text;
+            
+            if (sources.length > 0) {
+                report += "\n\n---\n\n## Data Sources (Grounding)\n\n";
+                sources.forEach((source, index) => {
+                    report += `${index + 1}. [${source.title}](${source.uri})\n`;
+                });
+            }
+            return report;
+        }
+
+        // This function logs the generated markdown artifact, which would appear in your editor area.
+        function generateAnalysisArtifact(content, item, date) {
+            const filename = `analysis_report_${item.replace(/\s/g, '_')}_${date}.md`;
+            const markdownTitle = `AI Analysis Report for ${item} (${date})`;
+
+            console.log("--- START GENERATED MARKDOWN ARTIFACT ---");
+            console.log(`markdown:${markdownTitle}:${filename}`);
+            console.log(content);
+            console.log("--- END GENERATED MARKDOWN ARTIFACT ---");
+        }
+
+
+        // --- Event Listeners and Initialization ---
+        document.getElementById('run-analysis-button').addEventListener('click', performQuery);
+
+        window.onload = function () {
+             // Initial message
+            document.getElementById('system-message').innerHTML = 'Enter parameters and click "Get AI Analysis".';
+        }
+    </script>
+</body>
+</html>

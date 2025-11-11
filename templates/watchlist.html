@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSense AI - Latest News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script>
+        // Custom Tailwind Configuration for the new dark theme
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-navy': '#051525', // Main Background
+                        'card-bg': '#0E1B2C',   // Slightly lighter background for cards/sections
+                        'primary-green': '#00CC66', // Bright Green Accent (Positive)
+                        'primary-red': '#F87171', // Red 400 (Negative)
+                        'primary-orange': '#FFB300', // Vibrant Orange CTA
+                        'positive-light': '#00CC66',
+                        'negative-light': '#F87171', 
+                        'neutral-color': '#4B5563', // Gray 600 (Neutral)
+                    },
+                }
+            }
+        }
+
+        // Mock News Article Data
+        const articleData = [
+            { ticker: 'TCS', sentiment: 'Positive', title: '(PR) TCS Unveils Chiplet-Based System Engineering...', summary: 'Tata Consultancy Services, a global leader in IT services, consulting, and business solutions, announced the launch of its Chiplet-based System Engineering Services, designed to help semiconductor companies...', source: 'Press Release', date: '2025-09-11' },
+            { ticker: 'TCS', sentiment: 'Positive', title: 'TCS launches chiplet-based system engineering servic...', summary: 'Tata Consultancy Services has launched chiplet-based system engineering services to accelerate semiconductor innovation and support India\'s ambition to become a global semiconductor hub. These service...', source: 'Financial News', date: '2025-09-11' },
+            { ticker: 'TCS', sentiment: 'Positive', title: 'TCS Chiplet Engineering Services to...', summary: 'The new services help chipmakers design faster and more efficient processors using chiplets—small integrated circuits that serve as building blocks for larger chips...', source: 'Tech Daily', date: '2025-09-11' },
+            { ticker: 'TCS', sentiment: 'Positive', title: 'Stock Picks Today: Adani Ports, TCS, Godrej...', summary: 'Adani Ports & Special Economic Zone Ltd, Adani Energy Ltd, Tata Consultancy Services Ltd, are expected to perform well...', source: 'Investment Analyst', date: '2025-09-11' },
+            { ticker: 'TCS', sentiment: 'Positive', title: 'Buy BSE, TCS Shares, Suggests Analyst Kunal...', summary: 'Kunal Rambhia, Fund Manager & Trading Strategist at The Streets, is bullish on BSE Ltd. and Tata Consultancy Services Ltd. (TCS), recommending investors to buy...', source: 'MoneyWire', date: '2025-09-11' },
+            { ticker: 'INFY', sentiment: 'Negative', title: 'As Infosys Mully Buyback, Will TCS Follow Suit?', summary: 'Infosys Ltd is set to consider a share buyback proposal. Global brokerage CLSA believes that Tata Consultancy Services Ltd, the country\'s largest I...', source: 'Economic Times', date: '2025-09-10' },
+            { ticker: 'ORCL', sentiment: 'Negative', title: 'Oracle\'s $244 billion single-day rally as big as entire I...', summary: 'Oracle shares surged by 36%, adding $244 billion to its market cap after projecting substantial cloud infrastructure revenue growth, potentially reaching $144 billion by fiscal 2030. This rally bro...', source: 'Global Markets', date: '2025-09-11' },
+            { ticker: 'ORCL', sentiment: 'Negative', title: 'Oracle stock dip threatens new high...', summary: 'After a significant rally, Oracle faces profit-taking pressure, causing a small dip that could jeopardize its recent upward trend if momentum is not maintained.', source: 'Market Watch', date: '2025-09-12' },
+        ];
+        
+        // Mock Watchlist Data (Uses articleData for counts)
+        const watchlistData = [
+            { ticker: 'TCS', name: 'Tata Consultancy Svcs', price: 4250.00, change: 1.52, sentiment: 'Positive', articles: articleData.filter(a => a.ticker === 'TCS').length, color: 'text-primary-green', trend: '▲' },
+            { ticker: 'INFY', name: 'Infosys Ltd', price: 1450.50, change: -0.88, sentiment: 'Negative', articles: articleData.filter(a => a.ticker === 'INFY').length, color: 'text-primary-red', trend: '▼' },
+            { ticker: 'ORCL', name: 'Oracle Corp', price: 135.20, change: -2.31, sentiment: 'Negative', articles: articleData.filter(a => a.ticker === 'ORCL').length, color: 'text-primary-red', trend: '▼' },
+            { ticker: 'RELIANCE', name: 'Reliance Industries', price: 2980.10, change: 0.25, sentiment: 'Neutral', articles: articleData.filter(a => a.ticker === 'RELIANCE').length, color: 'text-gray-400', trend: '—' },
+        ];
+
+        // --- JavaScript for Tab and Dropdown Functionality & Chart Initialization ---
+        window.onload = () => {
+            const tabs = document.querySelectorAll('.tab');
+            const dropdownButtons = document.querySelectorAll('.dropdown-btn');
+
+            // Initialize Chart
+            initSentimentChart();
+            
+            // Initial render of the watchlist
+            renderWatchlist('all');
+
+
+            // Handle Tab Selection (Updates active class and content)
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('tab-active', 'text-primary-green', 'text-negative-light'));
+                    this.classList.add('tab-active', 'text-primary-green');
+                    this.classList.remove('text-gray-400', 'hover:text-white');
+                    
+                    // Filter Watchlist/News Feed content
+                    const filter = this.getAttribute('data-tab');
+                    renderWatchlist(filter);
+                });
+            });
+
+            // Handle Watchlist Add (Mock Functionality)
+            document.getElementById('add-stock-btn').addEventListener('click', () => {
+                const input = document.getElementById('ticker-input');
+                const ticker = input.value.trim().toUpperCase();
+                
+                // Simple mock check
+                if (watchlistData.some(item => item.ticker === ticker)) {
+                    alertMessage(`${ticker} is already in your Watchlist.`, 'info');
+                } else if (ticker) {
+                    // Mock add to watchlistData 
+                    const newStock = { 
+                        ticker: ticker, 
+                        name: `${ticker} Company Inc.`, 
+                        price: (Math.random() * 1000 + 100).toFixed(2), 
+                        change: (Math.random() * 5 - 2.5).toFixed(2), // Random change
+                        sentiment: 'Neutral', articles: 0, color: 'text-gray-400', trend: '—' 
+                    };
+                    watchlistData.push(newStock);
+                    
+                    alertMessage(`Added ${ticker} to Watchlist!`, 'success');
+                    input.value = '';
+                    renderWatchlist('all'); // Re-render to show new stock
+                }
+            });
+            
+            // Close modal on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        };
+        
+        // Mock Alert function instead of alert()
+        function alertMessage(message, type) {
+            const container = document.getElementById('alert-container');
+            const color = type === 'success' ? 'bg-primary-green' : (type === 'info' ? 'bg-primary-orange' : 'bg-primary-red');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `p-4 rounded-lg shadow-xl text-dark-navy font-semibold text-sm ${color} mb-3 transition-opacity duration-300`;
+            alertDiv.textContent = message;
+            
+            container.innerHTML = ''; // Clear previous message
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+        
+        function renderWatchlist(filter) {
+            const container = document.getElementById('watchlist-container');
+            container.innerHTML = '';
+            
+            let filteredData = watchlistData;
+            
+            if (filter === 'positive') {
+                filteredData = watchlistData.filter(item => item.sentiment === 'Positive');
+            } else if (filter === 'negative') {
+                filteredData = watchlistData.filter(item => item.sentiment === 'Negative');
+            }
+            
+            // Update Watchlist count in tab title
+            const allTab = document.querySelector('[data-tab="all"]');
+            if (allTab) {
+                allTab.innerHTML = `My Watchlist (${watchlistData.length})`;
+            }
+
+            if (filteredData.length === 0) {
+                 container.innerHTML = '<p class="text-center text-gray-500 py-12">No stocks match the current filter criteria.</p>';
+                 return;
+            }
+
+            filteredData.forEach(item => {
+                const trendIcon = item.trend;
+                const changeColor = item.color;
+                const sentimentTagClass = item.sentiment === 'Positive' ? 'sentiment-positive' : (item.sentiment === 'Negative' ? 'sentiment-negative' : 'sentiment-neutral');
+                const newsButtonDisabled = item.articles === 0 ? 'opacity-50 cursor-not-allowed' : '';
+
+                const itemHtml = `
+                    <div class="flex justify-between items-center p-4 border-b border-gray-700 hover:bg-dark-navy transition duration-150">
+                        <!-- Ticker & Name -->
+                        <div class="flex flex-col flex-grow min-w-0">
+                            <span class="text-lg font-bold text-white">${item.ticker}</span>
+                            <span class="text-xs text-gray-400 truncate">${item.name}</span>
+                        </div>
+                        
+                        <!-- Price & Change -->
+                        <div class="flex flex-col text-right ml-4 mr-6">
+                            <span class="text-white font-semibold">${item.price}</span>
+                            <span class="text-sm ${changeColor} font-bold">
+                                ${trendIcon} ${Math.abs(item.change)}%
+                            </span>
+                        </div>
+                        
+                        <!-- AI Sentiment -->
+                        <div class="flex items-center space-x-4">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full ${sentimentTagClass} uppercase hidden sm:inline-block">
+                                ${item.sentiment}
+                            </span>
+                            <button onclick="showNewsDetails('${item.ticker}', '${item.name}')" 
+                                    ${item.articles === 0 ? 'disabled' : ''}
+                                    class="text-sm font-medium text-primary-green hover:text-green-400 transition duration-150 p-2 rounded-lg bg-primary-green/10 flex items-center ${newsButtonDisabled}">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM19 10c0-3.866-3.806-7-8-7s-8 3.134-8 7c0 2.585 1.58 4.887 4 5.867V17h8v-1.133c2.42-0.98 4-3.282 4-5.867z"></path></svg>
+                                News (${item.articles})
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHtml;
+            });
+        }
+        
+        function initSentimentChart() {
+            const ctx = document.getElementById('sentimentChart');
+
+            const positiveCount = articleData.filter(a => a.sentiment === 'Positive').length;
+            const negativeCount = articleData.filter(a => a.sentiment === 'Negative').length; 
+            const neutralCount = articleData.filter(a => a.sentiment === 'Neutral').length; 
+            
+            const sentimentData = {
+                labels: ['Positive', 'Negative', 'Neutral'],
+                datasets: [{
+                    label: 'Watchlist Sentiment Distribution',
+                    data: [positiveCount, negativeCount, neutralCount],
+                    backgroundColor: [
+                        '#00CC66', // primary-green (Positive)
+                        '#F87171', // negative-light (Negative)
+                        '#4B5563', // neutral-color (Neutral)
+                    ],
+                    hoverOffset: 10
+                }]
+            };
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: sentimentData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, 
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#E5E7EB', 
+                                font: {
+                                    size: 14,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        title: {
+                            display: false,
+                        }
+                    },
+                    cutout: '75%', 
+                }
+            });
+        }
+        
+        function showNewsDetails(ticker, name) {
+            const modal = document.getElementById('news-modal');
+            const content = document.getElementById('news-content');
+            
+            const articles = articleData.filter(a => a.ticker === ticker);
+            
+            let contentHtml = articles.map(article => {
+                const sentimentClass = article.sentiment === 'Positive' ? 'sentiment-positive' : (article.sentiment === 'Negative' ? 'sentiment-negative' : 'sentiment-neutral');
+                return `
+                    <div class="p-4 bg-dark-navy rounded-lg shadow-md mb-4 border-l-4 ${article.sentiment === 'Positive' ? 'border-primary-green' : 'border-primary-red'}">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-white font-bold text-lg">${article.title}</h4>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${sentimentClass} uppercase flex-shrink-0 ml-4">
+                                ${article.sentiment}
+                            </span>
+                        </div>
+                        <p class="text-gray-400 text-sm mb-3">${article.summary}</p>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Source: ${article.source}</span>
+                            <span>Date: ${article.date}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Set modal title and content
+            document.getElementById('modal-title').textContent = `${ticker} - ${name} News Feed`;
+            content.innerHTML = contentHtml;
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('news-modal').classList.add('hidden');
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #051525;
+        }
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+        /* Custom styles for sentiment tags to achieve the translucent background effect */
+        .sentiment-positive {
+            background-color: rgba(0, 204, 102, 0.2);
+            color: #00CC66;
+        }
+        .sentiment-negative {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #F87171;
+        }
+        .sentiment-neutral {
+            background-color: rgba(75, 85, 99, 0.2);
+            color: #4B5563;
+        }
+        .tab-active {
+            border-bottom: 3px solid #00CC66;
+            color: #00CC66 !important;
+            font-weight: 600;
+        }
+        .tab {
+            transition: all 0.15s;
+        }
+        /* Style for the scrollable content within the modal */
+        #news-content {
+            max-height: 70vh; /* Limit height of scrollable news list */
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-dark-navy text-gray-200">
+
+    <!-- Navbar -->
+    <header class="bg-card-bg shadow-lg sticky top-0 z-10 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary-green">StockSense AI</h1>
+            <div class="flex items-center space-x-4">
+                <!-- Bell Icon -->
+                <svg class="w-6 h-6 text-gray-400 hover:text-white cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <!-- Avatar -->
+                <div class="w-8 h-8 rounded-full bg-primary-green flex items-center justify-center text-dark-navy font-semibold text-sm cursor-pointer border-2 border-primary-green">J</div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content Area: Centered layout -->
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <p class="text-sm text-gray-400 mb-6">Personalized AI Dashboard | Analysis for 2025-09-11</p>
+
+        <!-- Ticker Search/Watchlist Input -->
+        <div class="bg-card-bg p-6 rounded-xl shadow-2xl border border-primary-orange/50 mb-8">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                <svg class="w-5 h-5 text-primary-orange mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Add Ticker to Watchlist
+            </h2>
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="ticker-input" placeholder="e.g., AAPL, RELIANCE, TCS" 
+                       class="flex-grow p-3 rounded-lg bg-dark-navy border border-gray-600 focus:ring-primary-orange focus:border-primary-orange text-white placeholder-gray-500" />
+                <button id="add-stock-btn" class="py-3 px-6 text-dark-navy font-bold rounded-lg bg-primary-orange hover:bg-yellow-600 focus:outline-none transition duration-150 shadow-lg flex-shrink-0">
+                    Add Stock
+                </button>
+            </div>
+            <!-- Alert message container -->
+            <div id="alert-container" class="mt-4"></div>
+        </div>
+        
+        <!-- Sentiment Summary & Distribution Chart -->
+        <div class="bg-card-bg p-6 rounded-xl shadow-lg border border-gray-800 mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            
+            <!-- Key Metrics Column -->
+            <div class="col-span-1 lg:col-span-2 space-y-4">
+                <h3 class="text-xl font-bold text-white border-b border-gray-700 pb-2">Daily Market Sentiment Overview</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <!-- Total Articles -->
+                    <div class="p-3 bg-dark-navy rounded-lg text-center">
+                        <p class="text-2xl font-extrabold text-white">8</p>
+                        <p class="text-sm text-gray-400">Total Articles</p>
+                    </div>
+                    <!-- Positive Score -->
+                    <div class="p-3 bg-dark-navy rounded-lg text-center">
+                        <p class="text-2xl font-extrabold text-primary-green">62.5%</p>
+                        <p class="text-sm text-gray-400">Positive Score</p>
+                    </div>
+                    <!-- Key Ticker -->
+                    <div class="p-3 bg-dark-navy rounded-lg text-center">
+                        <p class="text-2xl font-extrabold text-primary-orange">TCS</p>
+                        <p class="text-sm text-gray-400">Highest Volume</p>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 pt-2">
+                    <span class="font-semibold text-primary-green">Conclusion:</span> Overall sentiment is Bullish due to high volume of positive news for key tech stocks.
+                </p>
+            </div>
+
+            <!-- Chart Column -->
+            <div class="col-span-1 h-56 w-full lg:h-64 lg:w-full flex items-center justify-center">
+                <canvas id="sentimentChart" class="max-h-full max-w-full"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab/Filter Navigation (Simplified) -->
+        <div class="bg-card-bg rounded-xl p-4 mb-6 border border-gray-800">
+            <div class="relative flex flex-row space-x-6 sm:space-x-8 border-b border-gray-700 pb-2 overflow-x-auto whitespace-nowrap">
+                
+                <!-- 1. Main Tab - My Watchlist (Default) -->
+                <button data-tab="all" class="tab py-2 px-3 text-lg text-primary-green tab-active hover:text-white focus:outline-none">
+                    My Watchlist (4)
+                </button>
+                
+                <!-- 2. Positive Filter -->
+                <button data-tab="positive" class="tab py-2 px-3 text-lg text-gray-400 hover:text-primary-green focus:outline-none">
+                    Positive Sentiment
+                </button>
+
+                <!-- 3. Negative Filter -->
+                <button data-tab="negative" class="tab py-2 px-3 text-lg text-gray-400 hover:text-negative-light focus:outline-none">
+                    Negative Signals
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content - Watchlist Table/List -->
+        <main class="w-full">
+            <h2 class="text-2xl font-bold text-white mb-6">Watchlist Ticker Feed</h2>
+            <div id="watchlist-container" class="bg-card-bg rounded-xl shadow-lg border border-gray-800 divide-y divide-gray-800">
+                <!-- Watchlist items will be rendered here by JavaScript -->
+            </div>
+            
+            <p class="text-sm text-gray-500 mt-6 text-center">Data refreshed every 5 minutes. Prices are mock/demo data.</p>
+        </main>
+    </div>
+    
+    <!-- NEWS DETAILS MODAL (Hidden by default) -->
+    <div id="news-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4 hidden">
+        <div class="bg-card-bg w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
+                <h3 id="modal-title" class="text-2xl font-bold text-primary-green">Ticker News Feed</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white transition duration-150">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body (Scrollable News Content) -->
+            <div id="news-content" class="p-6 space-y-4">
+                <!-- Articles loaded here by JavaScript -->
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-gray-700 flex justify-end flex-shrink-0">
+                <button onclick="closeModal()" class="py-2 px-6 text-dark-navy font-bold rounded-lg bg-primary-orange hover:bg-yellow-600 transition duration-150">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

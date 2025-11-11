@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Stock Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">
+                <span class="brand-icon">📈</span>
+                <span class="brand-text">Stock Sentinel</span>
+            </a>
+
+            <div class="nav-links">
+                <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth layout: welcome panel + form -->
+    <div class="auth-wrapper">
+        <div class="auth-welcome">
+            <div class="welcome-content">
+                <div class="welcome-icon">📈</div>
+                <h2>Welcome to Stock Sentinel</h2>
+                <p style="opacity:0.9; max-width:320px;">Create an account to get personalized stock sentiment insights and track companies you care about.</p>
+
+                <div class="features-list" style="margin-top:1.5rem;">
+                    <h4>What you'll get</h4>
+                    <ul style="margin-top:0.5rem; color:rgba(255,255,255,0.95);">
+                        <li>Daily sentiment summaries</li>
+                        <li>Saved watchlists</li>
+                        <li>Historical analysis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-form-section">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="auth-card card">
+                <div class="auth-header">
+                    <h1>Create Account</h1>
+                    <p style="color: #64748b; margin-bottom: 1rem;">Join us to get personalized stock sentiment analysis</p>
+                </div>
+
+                <form method="POST" id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <input type="text" id="full_name" name="full_name" class="form-input" required placeholder=" ">
+                        <label for="full_name" class="form-label">Full Name</label>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" id="username" name="username" class="form-input" required minlength="3" autocomplete="username" placeholder=" ">
+                        <label for="username" class="form-label">Username</label>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" class="form-input" required autocomplete="email" placeholder=" ">
+                        <label for="email" class="form-label">Email</label>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password" placeholder=" ">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-requirements">
+                            <strong>Password Requirements:</strong>
+                            <ul>
+                                <li>At least 8 characters long</li>
+                                <li>Contains uppercase letter (A-Z)</li>
+                                <li>Contains lowercase letter (a-z)</li>
+                                <li>Contains number (0-9)</li>
+                                <li>Contains special character (!@#$%^&*)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required autocomplete="new-password" placeholder=" ">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Create Account</button>
+                </form>
+
+                <div style="text-align:center; margin-top:1rem;">
+                    <p style="color:#94a3b8; margin-bottom:0.5rem;">Already have an account?</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Focus on full name field
+        document.getElementById('full_name').focus();
+
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Password strength validation
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+            
+            return requirements;
+        }
+        
+        // Email validation
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Real-time password validation
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const requirements = validatePassword(password);
+            const requirementsList = document.querySelectorAll('.password-requirements li');
+            
+            requirementsList.forEach((item, index) => {
+                const reqKeys = ['length', 'uppercase', 'lowercase', 'number', 'special'];
+                if (requirements[reqKeys[index]]) {
+                    item.style.color = '#22c55e';
+                } else {
+                    item.style.color = '#ef4444';
+                }
+            });
+        });
+        
+        // Form validation
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const fullNameField = document.getElementById('full_name');
+            const usernameField = document.getElementById('username');
+            const emailField = document.getElementById('email');
+            const passwordField = document.getElementById('password');
+            const confirmPasswordField = document.getElementById('confirm_password');
+            
+            let isValid = true;
+            
+            // Reset previous validation styles
+            [fullNameField, usernameField, emailField, passwordField, confirmPasswordField].forEach(field => {
+                field.classList.remove('is-invalid', 'is-valid');
+            });
+            
+            // Validate full name
+            if (fullNameField.value.trim().length < 2) {
+                fullNameField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                fullNameField.classList.add('is-valid');
+            }
+            
+            // Validate username
+            if (usernameField.value.trim().length < 3) {
+                usernameField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                usernameField.classList.add('is-valid');
+            }
+            
+            // Validate email
+            if (!validateEmail(emailField.value)) {
+                emailField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                emailField.classList.add('is-valid');
+            }
+            
+            // Validate password
+            const requirements = validatePassword(passwordField.value);
+            const allRequirementsMet = Object.values(requirements).every(req => req);
+            
+            if (!allRequirementsMet) {
+                passwordField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                passwordField.classList.add('is-valid');
+            }
+            
+            // Validate password confirmation
+            if (passwordField.value !== confirmPasswordField.value) {
+                confirmPasswordField.classList.add('is-invalid');
+                isValid = false;
+            } else if (confirmPasswordField.value.length > 0) {
+                confirmPasswordField.classList.add('is-valid');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

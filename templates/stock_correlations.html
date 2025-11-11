@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Correlations - {{ company }} | StockSense AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='stock_correlations.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                <span>StockSense AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('index') }}" class="nav-link">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                {% if user_name %}
+                <li class="nav-item">
+                    <a href="{{ url_for('watchlist') }}" class="nav-link">
+                        <i class="fas fa-star"></i> Watchlist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('profile') }}" class="nav-link">
+                        <i class="fas fa-user"></i> {{ user_name }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for('login') }}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('register') }}" class="nav-link register-btn">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                        {{ message }}
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <!-- Analysis Navigation -->
+        <div class="analysis-nav">
+            <div class="analysis-header">
+                <h1><i class="fas fa-building"></i> {{ company }}</h1>
+                <p class="analysis-subtitle">Stock Correlation & Impact Analysis</p>
+            </div>
+            
+            <div class="tab-navigation">
+                <a href="{{ url_for('latest_news') }}" class="tab-link">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Latest News</span>
+                </a>
+                <a href="{{ url_for('stock_correlations') }}" class="tab-link active">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Stock Correlations</span>
+                </a>
+                <a href="{{ url_for('stock_domain') }}" class="tab-link">
+                    <i class="fas fa-industry"></i>
+                    <span>Domain & Sector</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Stock Correlation Analysis -->
+        {% if stock_info and stock_info.correlation_analysis %}
+        <div class="correlation-analysis-section">
+            <!-- Correlation Summary -->
+            <div class="correlation-overview">
+                <h2><i class="fas fa-chart-network"></i> Market Impact Overview</h2>
+                <p class="section-description">
+                    Analysis of how {{ company }} ({{ stock_info.ticker }}) correlates with other stocks in the market based on historical price movements.
+                </p>
+                
+                <div class="correlation-metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>{{ stock_info.correlation_analysis.total_analyzed }}</h3>
+                            <p>Stocks Analyzed</p>
+                            <small>Related stocks compared</small>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>{{ (stock_info.correlation_analysis.average_correlation * 100)|round(1) }}%</h3>
+                            <p>Average Correlation</p>
+                            <small>Mean correlation strength</small>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>{{ (stock_info.correlation_analysis.max_correlation * 100)|round(1) }}%</h3>
+                            <p>Strongest Correlation</p>
+                            <small>Highest correlation found</small>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card influence-{{ stock_info.correlation_analysis.market_influence.lower() }}">
+                        <div class="metric-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="metric-content">
+                            <h3>{{ stock_info.correlation_analysis.market_influence }}</h3>
+                            <p>Market Influence</p>
+                            <small>Overall impact rating</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Understanding Correlations -->
+            <div class="correlation-explanation">
+                <h3><i class="fas fa-info-circle"></i> Understanding Correlations</h3>
+                <div class="explanation-grid">
+                    <div class="explanation-card">
+                        <div class="explanation-icon positive">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <h4>Positive Correlation</h4>
+                        <p>Stocks move in the same direction. When {{ stock_info.ticker }} goes up, these stocks tend to go up too.</p>
+                    </div>
+                    
+                    <div class="explanation-card">
+                        <div class="explanation-icon negative">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <h4>Negative Correlation</h4>
+                        <p>Stocks move in opposite directions. When {{ stock_info.ticker }} goes up, these stocks tend to go down.</p>
+                    </div>
+                    
+                    <div class="explanation-card">
+                        <div class="explanation-icon neutral">
+                            <i class="fas fa-minus"></i>
+                        </div>
+                        <h4>No Correlation</h4>
+                        <p>Stock movements are independent. Changes in {{ stock_info.ticker }} don't predict these stocks.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Stocks Analysis -->
+            {% if stock_info.related_stocks %}
+            <div class="related-stocks-analysis">
+                <h2><i class="fas fa-link"></i> Related Stocks & Impact Analysis</h2>
+                <p class="section-description">
+                    Detailed correlation analysis showing which stocks are most affected by {{ company }}'s movements.
+                </p>
+                
+                <!-- Filter Options -->
+                <div class="correlation-filters">
+                    <button class="filter-btn active" onclick="filterCorrelations('all')">All Stocks</button>
+                    <button class="filter-btn" onclick="filterCorrelations('sector-peers')">Sector Peers</button>
+                    <button class="filter-btn" onclick="filterCorrelations('competitors')">Competitors</button>
+                    <button class="filter-btn" onclick="filterCorrelations('strong')">Strong Correlations</button>
+                </div>
+
+                <!-- Correlation Table -->
+                <div class="correlation-table-container">
+                    <table class="correlation-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-chart-line"></i> Stock Ticker</th>
+                                <th><i class="fas fa-tags"></i> Relationship Type</th>
+                                <th><i class="fas fa-exchange-alt"></i> Correlation</th>
+                                <th><i class="fas fa-signal"></i> Strength</th>
+                                <th><i class="fas fa-bullseye"></i> Impact Score</th>
+                                <th><i class="fas fa-chart-bar"></i> Visual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stock_info.related_stocks %}
+                            <tr class="correlation-row" 
+                                data-relationship="{{ stock.relationship_type }}" 
+                                data-strength="{{ stock.strength.replace(' ', '-').lower() }}">
+                                
+                                <td class="stock-ticker-cell">
+                                    <strong>{{ stock.ticker }}</strong>
+                                </td>
+                                
+                                <td>
+                                    <span class="relationship-badge relationship-{{ stock.relationship_type.replace('_', '-') }}">
+                                        <i class="fas fa-tag"></i>
+                                        {{ stock.relationship_type.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                
+                                <td class="correlation-value-cell">
+                                    <span class="correlation-number correlation-{{ 'positive' if stock.correlation > 0 else 'negative' if stock.correlation < 0 else 'neutral' }}">
+                                        {{ stock.correlation }}
+                                    </span>
+                                    <div class="correlation-direction">
+                                        {% if stock.correlation > 0.1 %}
+                                            <i class="fas fa-arrows-alt-h text-success"></i> Same Direction
+                                        {% elif stock.correlation < -0.1 %}
+                                            <i class="fas fa-exchange-alt text-danger"></i> Opposite Direction
+                                        {% else %}
+                                            <i class="fas fa-minus text-muted"></i> No Clear Pattern
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <span class="strength-badge strength-{{ stock.strength.replace(' ', '-').lower() }}">
+                                        {{ stock.strength }}
+                                    </span>
+                                </td>
+                                
+                                <td class="impact-score-cell">
+                                    <div class="impact-score-container">
+                                        <div class="impact-bar-bg">
+                                            <div class="impact-bar-fill" style="width: {{ stock.impact_score }}%"></div>
+                                        </div>
+                                        <span class="impact-score-text">{{ stock.impact_score|round(1) }}</span>
+                                    </div>
+                                </td>
+                                
+                                <td class="correlation-visual-cell">
+                                    <div class="correlation-indicator">
+                                        {% set abs_corr = stock.correlation if stock.correlation >= 0 else (0 - stock.correlation) %}
+                                        <div class="correlation-bar" style="width: {{ (abs_corr * 100)|round }}%">
+                                            <div class="correlation-fill correlation-{{ 'positive' if stock.correlation > 0 else 'negative' if stock.correlation < 0 else 'neutral' }}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Correlations Highlight -->
+            <div class="top-correlations">
+                <h3><i class="fas fa-star"></i> Key Relationships</h3>
+                <div class="top-correlations-grid">
+                    {% for stock in stock_info.related_stocks[:4] %}
+                    <div class="top-correlation-card">
+                        <div class="correlation-header">
+                            <h4>{{ stock.ticker }}</h4>
+                            <span class="correlation-strength strength-{{ stock.strength.replace(' ', '-').lower() }}">
+                                {{ stock.strength }}
+                            </span>
+                        </div>
+                        <div class="correlation-metric">
+                            <span class="correlation-value correlation-{{ 'positive' if stock.correlation > 0 else 'negative' }}">
+                                {{ stock.correlation }}
+                            </span>
+                        </div>
+                        <div class="correlation-type">
+                            {{ stock.relationship_type.replace('_', ' ').title() }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Investment Insights -->
+            <div class="investment-insights">
+                <h3><i class="fas fa-lightbulb"></i> Investment Insights</h3>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Portfolio Diversification</h4>
+                        <p>
+                            {% if stock_info.correlation_analysis.market_influence == 'High' %}
+                            {{ company }} has high market influence. Consider balancing with uncorrelated assets.
+                            {% elif stock_info.correlation_analysis.market_influence == 'Moderate' %}
+                            {{ company }} shows moderate correlations. Good for balanced portfolio exposure.
+                            {% else %}
+                            {{ company }} has low correlation with most stocks. Good for portfolio diversification.
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Risk Assessment</h4>
+                        <p>
+                            Average correlation of {{ (stock_info.correlation_analysis.average_correlation * 100)|round(1) }}% 
+                            suggests {{ 'higher' if stock_info.correlation_analysis.average_correlation > 0.5 else 'moderate' if stock_info.correlation_analysis.average_correlation > 0.3 else 'lower' }} 
+                            systematic risk within the analyzed stocks.
+                        </p>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <i class="fas fa-users"></i>
+                        <h4>Sector Exposure</h4>
+                        <p>
+                            Monitor sector-wide movements as {{ company }} shows 
+                            {{ stock_info.correlation_analysis.market_influence.lower() }} influence on related stocks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        {% else %}
+        <!-- No Correlation Data Available -->
+        <div class="no-correlation-data">
+            <div class="no-data-icon">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <h3>Correlation Analysis Unavailable</h3>
+            <p>We couldn't perform correlation analysis for {{ company }}. This might be because:</p>
+            <ul>
+                <li>The stock ticker could not be identified</li>
+                <li>Insufficient historical data is available</li>
+                <li>The stock is not in our supported markets</li>
+            </ul>
+            <div class="no-data-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Try Another Stock
+                </a>
+                <a href="{{ url_for('stock_domain') }}" class="btn btn-outline">
+                    <i class="fas fa-industry"></i> View Sector Info
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Navigation to Next Analysis -->
+        <div class="next-analysis-section">
+            <div class="next-analysis-card">
+                <h3><i class="fas fa-arrow-right"></i> Next: Sector Analysis</h3>
+                <p>Explore {{ company }}'s sector classification and industry details</p>
+                <a href="{{ url_for('stock_domain') }}" class="btn btn-primary">
+                    <i class="fas fa-industry"></i> View Sector Analysis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-chart-line"></i> StockSense AI</h3>
+                <p>Advanced correlation analysis using statistical methods and financial data.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Correlation Features</h4>
+                <ul>
+                    <li>Pearson correlation analysis</li>
+                    <li>Sector peer identification</li>
+                    <li>Impact scoring metrics</li>
+                    <li>Investment insights</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 StockSense AI. Stock correlation analysis using advanced statistical methods.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+
+        // Filter correlations
+        function filterCorrelations(filter) {
+            const rows = document.querySelectorAll('.correlation-row');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter rows
+            rows.forEach(row => {
+                let show = false;
+                
+                switch(filter) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'sector-peers':
+                        show = row.dataset.relationship === 'sector_peers';
+                        break;
+                    case 'competitors':
+                        show = row.dataset.relationship === 'competitors';
+                        break;
+                    case 'strong':
+                        show = row.dataset.strength.includes('strong') || row.dataset.strength.includes('very-strong');
+                        break;
+                }
+                
+                row.style.display = show ? 'table-row' : 'none';
+            });
+        }
+
+        // Add hover effects to correlation bars
+        document.querySelectorAll('.correlation-indicator').forEach(indicator => {
+            indicator.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+            });
+            
+            indicator.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if company %}{{ company }} Analysis{% else %}StockSense AI - Smart Investment Analysis{% endif %}</title>
+    
+    <!-- Working CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Meta tags -->
+    <meta name="description" content="Advanced AI-powered stock analysis platform">
+    <meta name="theme-color" content="#4FC3F7">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                <span>StockSense AI</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('index') }}" class="nav-link active">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                {% if user_name %}
+                <li class="nav-item">
+                    <a href="{{ url_for('analysis_history') }}" class="nav-link">
+                        <i class="fas fa-history"></i> History
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('watchlist') }}" class="nav-link">
+                        <i class="fas fa-star"></i> Watchlist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('profile') }}" class="nav-link">
+                        <i class="fas fa-user"></i> {{ user_name }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for('login') }}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('register') }}" class="nav-link register-btn">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                        {{ message }}
+                        <span class="closebtn">&times;</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <i class="fas fa-brain"></i>
+                Your Investment Intelligence
+                <span style="color: #4FC3F7;">Our Responsibility</span>
+            </h1>
+            <p class="hero-subtitle">
+                Make informed investment decisions with comprehensive stock analysis powered by advanced AI. 
+                Get sentiment analysis, correlation insights, and sector intelligence all in one place.
+            </p>
+        </div>
+
+        <!-- Analysis Form -->
+        <div class="analysis-form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2><i class="fas fa-search"></i> Start Your Analysis</h2>
+                    <p>Enter a company name to get comprehensive insights across multiple dimensions</p>
+                </div>
+                
+                <form method="POST" class="analysis-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" 
+                                   id="company" 
+                                   name="company" 
+                                   class="form-input"
+                                   placeholder=" " 
+                                   required
+                                   autocomplete="off">
+                            <label for="company" class="form-label">
+                                <i class="fas fa-building"></i> Company Name
+                            </label>
+                            <small>e.g., Apple, Tesla, Microsoft, TCS, Reliance</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <!-- Hidden date input kept for server compatibility; JS will populate it -->
+                            <input type="hidden"
+                                   id="date"
+                                   name="date"
+                                   value="">
+
+                            <!-- Dropdown to choose relative timeframe for analysis -->
+                            <select id="analysis_timeframe" name="analysis_timeframe" class="form-input" aria-label="Analysis timeframe">
+                                <option value="last_hour">Last hour</option>
+                                <option value="today" selected>Today</option>
+                                <option value="this_week">This week</option>
+                                <option value="this_month">This month</option>
+                            </select>
+
+                            <label for="analysis_timeframe" class="form-label">
+                                <i class="fas fa-calendar"></i> Analysis Date
+                            </label>
+                            <small>Select timeframe for news sentiment analysis</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-chart-bar"></i> Get Analysis
+                        </button>
+                        
+                        {% if user_name %}
+                        <button type="submit" name="add_watchlist" class="btn btn-secondary">
+                            <i class="fas fa-star"></i> Add to Watchlist
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Services Section -->
+        <div class="services-section">
+            <h2 class="section-title">
+                <i class="fas fa-star"></i> Best Services
+            </h2>
+            <p class="section-subtitle">Love yourself enough to make informed investment decisions.</p>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3>Sentiment Analysis</h3>
+                    <p>Real-time news sentiment analysis using advanced AI to gauge market mood and investor sentiment.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> AI-powered sentiment scoring</li>
+                        <li><i class="fas fa-check"></i> Real-time news processing</li>
+                        <li><i class="fas fa-check"></i> Source credibility analysis</li>
+                        <li><i class="fas fa-check"></i> Historical sentiment trends</li>
+                    </ul>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>Correlation Analysis</h3>
+                    <p>Discover stock relationships and understand how different investments move in relation to each other.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Statistical correlation analysis</li>
+                        <li><i class="fas fa-check"></i> Sector peer identification</li>
+                        <li><i class="fas fa-check"></i> Impact scoring metrics</li>
+                        <li><i class="fas fa-check"></i> Risk assessment tools</li>
+                    </ul>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Sector Intelligence</h3>
+                    <p>Comprehensive sector and industry analysis to understand market positioning and growth potential.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Industry classification</li>
+                        <li><i class="fas fa-check"></i> Market cap analysis</li>
+                        <li><i class="fas fa-check"></i> Growth characteristics</li>
+                        <li><i class="fas fa-check"></i> Investment risk profiling</li>
+                    </ul>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>Analysis History</h3>
+                    <p>Track your investment research over time with comprehensive analysis history and comparison tools.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Historical analysis tracking</li>
+                        <li><i class="fas fa-check"></i> Performance comparison</li>
+                        <li><i class="fas fa-check"></i> Trend identification</li>
+                        <li><i class="fas fa-check"></i> Export capabilities</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="how-it-works-section">
+            <h2 class="section-title">
+                <i class="fas fa-cogs"></i> Find insights at your own ease
+            </h2>
+            
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Search Company</h3>
+                        <p>Enter any company name or stock symbol to start your comprehensive analysis</p>
+                    </div>
+                </div>
+                
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>AI Analysis</h3>
+                        <p>Our AI processes news, calculates correlations, and analyzes sector data</p>
+                    </div>
+                </div>
+                
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Get Insights</h3>
+                        <p>Receive detailed reports across three comprehensive analysis dimensions</p>
+                    </div>
+                </div>
+                
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Make Decisions</h3>
+                        <p>Use insights to make informed investment decisions with confidence</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Specialties -->
+            <div class="search-specialties">
+                <h3>Popular Analysis Categories</h3>
+                <div class="specialty-tags">
+                    <button class="specialty-tag" onclick="fillCompany('Apple')">
+                        <i class="fas fa-search"></i> Technology/Apple
+                    </button>
+                    <button class="specialty-tag" onclick="fillCompany('Tesla')">
+                        <i class="fas fa-search"></i> Automotive/Tesla
+                    </button>
+                    <button class="specialty-tag" onclick="fillCompany('TCS')">
+                        <i class="fas fa-search"></i> IT Services/TCS
+                    </button>
+                    <button class="specialty-tag" onclick="fillCompany('Reliance')">
+                        <i class="fas fa-search"></i> Energy/Reliance
+                    </button>
+                    <button class="specialty-tag" onclick="fillCompany('Microsoft')">
+                        <i class="fas fa-search"></i> Software/Microsoft
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action for Non-Authenticated Users -->
+        {% if not user_name %}
+        <div class="cta-section">
+            <div class="cta-card">
+                <h2><i class="fas fa-user-plus"></i> Create Your Account</h2>
+                <p>Join StockSense AI to save your analysis history, create watchlists, and access premium features for smarter investment decisions.</p>
+                
+                <div class="cta-benefits">
+                    <div class="benefit-item">
+                        <i class="fas fa-save"></i>
+                        <span>Save Analysis History</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-star"></i>
+                        <span>Personal Watchlists</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Advanced Analytics</span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Smart Alerts</span>
+                    </div>
+                </div>
+                
+                <div class="cta-buttons">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">
+                        <i class="fas fa-user-plus"></i> Sign Up Free
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-chart-line"></i> StockSense AI</h3>
+                <p>Advanced AI-powered stock analysis platform providing comprehensive insights for informed investment decisions through sentiment analysis, correlation studies, and sector intelligence.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Analysis Features</h4>
+                <ul>
+                    <li>Real-time news sentiment</li>
+                    <li>Stock correlation analysis</li>
+                    <li>Sector intelligence</li>
+                    <li>Market impact scoring</li>
+                    <li>Investment risk profiling</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>AI Technology</h4>
+                <ul>
+                    <li>BERT-based NLP models</li>
+                    <li>Semantic similarity analysis</li>
+                    <li>Financial data integration</li>
+                    <li>Multi-source aggregation</li>
+                    <li>Statistical correlation analysis</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>User Tools</h4>
+                <ul>
+                    <li>Analysis history tracking</li>
+                    <li>Personal watchlists</li>
+                    <li>Export capabilities</li>
+                    <li>Performance monitoring</li>
+                    <li>Trend identification</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 StockSense AI. Comprehensive investment analysis powered by artificial intelligence.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

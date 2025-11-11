@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Stock Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+            <div class="brand">📈 Stock Sentinel</div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span>Welcome, {{ session.full_name }}!</span>
+                <a href="{{ url_for('index') }}" class="btn btn-outline btn-small">Dashboard</a>
+                <a href="{{ url_for('watchlist') }}" class="btn btn-outline btn-small">Watchlist</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline btn-small">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card fade-in" style="max-width: 900px; margin: 0 auto 2rem auto;">
+            <h1 class="section-title" style="text-align: center;">User Profile</h1>
+            
+            <div class="profile-info" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ user.full_name }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Username</div>
+                    <div class="info-value">{{ user.username }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Email Address</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">{{ user.created_at[:10] if user.created_at else 'Unknown' }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Companies in Watchlist</div>
+                    <div class="info-value">{{ watchlist_count }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-value" style="color: var(--success); font-weight: 600;">
+                        ✓ Active
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-right: 1rem;">
+                    Go to Dashboard
+                </a>
+                <a href="{{ url_for('watchlist') }}" class="btn btn-secondary">
+                    View Watchlist
+                </a>
+            </div>
+        </div>
+
+        <div class="card fade-in" style="max-width: 900px; margin: 0 auto;">
+            <h2 class="section-subtitle" style="margin-bottom: 1rem; color: var(--text-secondary);">
+                Account Information
+            </h2>
+            
+            <div style="background: var(--primary-color); padding: 1.5rem; border-radius: var(--radius-md); color: var(--white);">
+                <h4 style="margin-bottom: 1rem;">
+                    🛡️ Privacy & Security
+                </h4>
+                <ul style="list-style-type: none; padding-left: 0; line-height: 1.6;">
+                    <li>🔒 Your password is securely encrypted</li>
+                    <li>💾 Your watchlist data is stored securely in MySQL</li>
+                    <li>👁️ Your analysis history is private</li>
+                    <li>🚪 Always logout from shared devices</li>
+                </ul>
+            </div>
+            
+            <div style="background: var(--success); padding: 1.5rem; border-radius: var(--radius-md); color: var(--white); margin-top: 1rem;">
+                <h4 style="margin-bottom: 1rem;">
+                    💡 Tips for Better Analysis
+                </h4>
+                <ul style="list-style-type: none; padding-left: 0; line-height: 1.6;">
+                    <li>➕ Add multiple companies to your watchlist for comparison</li>
+                    <li>📅 Analyze different dates to track sentiment trends</li>
+                    <li>🔍 Use specific company names for better results</li>
+                    <li>⏰ Check news during market hours for real-time insights</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Add animation to profile cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoItems = document.querySelectorAll('.info-item');
+            infoItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
